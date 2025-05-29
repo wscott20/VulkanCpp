@@ -1,0 +1,1 @@
+make && ./VulkanTest && rm VulkanTest
