@@ -55,6 +55,7 @@ class VkInit {
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
     std::vector<VkImageView> swapChainImageViews;
+    std::optional<GraphicsPipeline> pipeline;
     std::unique_ptr<VkApp> app;
     void createInstance() {
         VkApplicationInfo appInfo{};
@@ -296,7 +297,7 @@ class VkInit {
         createLogicalDevice();
         createSwapChain();
         createImageViews();
-
+        pipeline = GraphicsPipeline{};
     }
     void mainLoop() {
         while (!glfwWindowShouldClose(window)) {
