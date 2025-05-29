@@ -9,6 +9,7 @@
 #include <optional>
 #include <set>
 #include <memory>
+#include "pipeline.hpp"
 #define err(e) throw std::runtime_error(std::string("Error: ") + e + " at " + __FILE__ + ":" + std::to_string(__LINE__))
 #ifdef NDEBUG
 bool enableValidationLayers = false;
@@ -53,6 +54,7 @@ class VkInit {
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
+    std::vector<VkImageView> swapChainImageViews;
     std::unique_ptr<VkApp> app;
     void createInstance() {
         VkApplicationInfo appInfo{};
@@ -256,6 +258,27 @@ class VkInit {
         swapChainImageFormat = surfaceFormat.format;
         swapChainExtent = extent;
     }
+    void createImageViews() {
+        swapChainImageViews.resize(swapChainImages.size());
+        for (size_t i = 0; i < swapChainImages.size(); i++) {
+            VkImageViewCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image = swapChainImages[i];
+            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            createInfo.format = swapChainImageFormat;
+            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            createInfo.subresourceRange.baseMipLevel = 0;
+            createInfo.subresourceRange.levelCount = 1;
+            createInfo.subresourceRange.baseArrayLayer = 0;
+            createInfo.subresourceRange.layerCount = 1;
+            if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
+                err("Failed to create image views");
+        }
+    }
     void initWindow() {
         if(!glfwInit()) err("Failed to initialize GLFW");
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -272,6 +295,8 @@ class VkInit {
         pickPhysicalDevice();
         createLogicalDevice();
         createSwapChain();
+        createImageViews();
+
     }
     void mainLoop() {
         while (!glfwWindowShouldClose(window)) {
@@ -280,6 +305,8 @@ class VkInit {
         }
     }
     void cleanup() {
+        for (auto imageView : swapChainImageViews)
+            vkDestroyImageView(device, imageView, nullptr);
         vkDestroySwapchainKHR(device, swapChain, nullptr);
         vkDestroyDevice(device, nullptr);
         vkDestroySurfaceKHR(instance, surface, nullptr);
