@@ -1,15 +1,15 @@
 #ifndef read_file_hpp
 #define read_file_hpp
 #include <fstream>
-#include <string>
-using std::string;
-using ifs = std::ifstream;
-string readFile(string filename) {
-    ifs file(filename);
-    string output,read;
-    while (getline(file,read)) {
-        output += read + "\n";
-    }
-    return output;
+std::vector<char> readFile(const std::string& filename) {
+    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+    if (!file.is_open())
+        throw std::runtime_error("failed to open file!");
+    size_t fileSize = (size_t) file.tellg();
+    std::vector<char> buffer(fileSize);
+    file.seekg(0);
+    file.read(buffer.data(), fileSize);
+    file.close();
+    return buffer;
 }
 #endif

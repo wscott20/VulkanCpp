@@ -5,7 +5,6 @@
 #include <cstdlib>
 #include <limits>
 #include <algorithm>
-#include <vector>
 #include <optional>
 #include <set>
 #include <memory>
